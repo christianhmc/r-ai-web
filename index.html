@@ -1,0 +1,437 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>R-AI — Inteligencia Regulatoria Farmacéutica</title>
+<meta name="description" content="R-AI: inteligencia artificial para el entorno regulatorio farmacéutico en Colombia. Analiza las actas de la SEMPB del INVIMA y monitorea los sometimientos del Decreto de Transparencia.">
+<link rel="icon" type="image/svg+xml" href="favicon.svg">
+<style>
+  :root{
+    --paper:#f5f7fa;
+    --card:#ffffff;
+    --ink:#1c2b40;
+    --muted:#5a6b80;
+    --line:#dfe5ec;
+    --accent:#1257c4;
+    --accent2:#2e7ad6;
+    --hero1:#0e1c31;
+    --hero2:#16325c;
+  }
+  @media (prefers-color-scheme: dark){
+    :root{
+      --paper:#10151d;
+      --card:#182028;
+      --ink:#e7edf4;
+      --muted:#93a3b6;
+      --line:#273140;
+      --accent:#5da2f0;
+      --accent2:#7dbcff;
+    }
+  }
+
+  *{box-sizing:border-box}
+  html{scroll-behavior:smooth}
+  @media (prefers-reduced-motion: reduce){html{scroll-behavior:auto}}
+  body{
+    background:var(--paper);
+    color:var(--ink);
+    font-family:"Avenir Next","Helvetica Neue","Segoe UI",sans-serif;
+    line-height:1.65;
+    margin:0;
+    -webkit-font-smoothing:antialiased;
+  }
+  .wrap{max-width:1060px;margin:0 auto;padding:0 1.4rem}
+
+  /* ---- Nav ---- */
+  nav{display:flex;align-items:center;gap:1.6rem;padding:1rem 0;flex-wrap:wrap}
+  .brand{display:flex;align-items:center;gap:.55rem;margin-right:auto}
+  .brand .bname{
+    font-family:Futura,"Century Gothic","Avenir Next",sans-serif;
+    font-weight:700;font-size:1.35rem;letter-spacing:.06em;color:var(--ink);
+  }
+  nav a.link{color:var(--muted);text-decoration:none;font-size:.92rem}
+  nav a.link:hover{color:var(--accent)}
+  .btn{
+    display:inline-block;background:var(--accent);color:#fff;
+    padding:.6rem 1.25rem;border-radius:9px;text-decoration:none;
+    font-weight:600;font-size:.92rem;border:1.5px solid var(--accent);
+  }
+  .btn:hover{filter:brightness(1.1)}
+  .btn.ghost{background:transparent;color:var(--accent);border:1.5px solid var(--accent)}
+  .btn.onhero{border-color:#fff;color:#fff;background:transparent}
+  .btn.onhero.solid{background:#fff;color:#16325c}
+  a:focus-visible,.btn:focus-visible{outline:2px solid var(--accent2);outline-offset:2px}
+
+  /* ---- Hero ---- */
+  .hero{
+    background:linear-gradient(135deg,var(--hero1),var(--hero2));
+    color:#fff;position:relative;overflow:hidden;
+    border-radius:18px;margin-top:.4rem;
+  }
+  .hero-inner{position:relative;z-index:1;max-width:620px;padding:4.2rem 2.6rem 4.4rem}
+  .hero .eyebrow{
+    font-family:"SF Mono",Menlo,Consolas,monospace;
+    font-size:.72rem;letter-spacing:.18em;text-transform:uppercase;
+    color:#9ec6ef;margin:0 0 1rem;
+  }
+  .hero h1{
+    font-size:clamp(1.8rem,4.2vw,2.55rem);font-weight:700;
+    letter-spacing:-.015em;line-height:1.2;margin:0 0 1.1rem;text-wrap:balance;
+  }
+  .hero h1 em{font-style:normal;color:#7dbcff}
+  .hero p.sub{color:rgba(255,255,255,.82);max-width:56ch;margin:0 0 1.8rem;font-size:1.02rem}
+  .hero .ctas{display:flex;gap:.9rem;flex-wrap:wrap}
+  .hero .deco{position:absolute;right:-30px;top:50%;transform:translateY(-50%);opacity:.5;pointer-events:none}
+  .hero .deco2{position:absolute;left:38%;bottom:-70px;opacity:.22;pointer-events:none}
+  @media (max-width:760px){.hero .deco{opacity:.22}}
+
+  /* ---- Sections ---- */
+  section{padding:3.4rem 0 0}
+  .s-eyebrow{
+    font-family:"SF Mono",Menlo,Consolas,monospace;
+    font-size:.72rem;letter-spacing:.16em;text-transform:uppercase;
+    color:var(--accent);margin:0 0 .5rem;
+  }
+  h2{font-size:1.55rem;font-weight:700;letter-spacing:-.01em;margin:0 0 .5rem;text-wrap:balance}
+  .s-sub{color:var(--muted);max-width:66ch;margin:0 0 1.8rem}
+
+  /* ---- Service cards ---- */
+  .cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:1.1rem}
+  .card{
+    background:var(--card);border:1px solid var(--line);border-radius:16px;
+    padding:1.7rem 1.6rem 1.5rem;display:flex;flex-direction:column;gap:.65rem;
+  }
+  .card .icon{color:var(--accent2)}
+  .card h3{margin:.1rem 0 0;font-size:1.13rem;font-weight:700}
+  .card p{margin:0;font-size:.93rem;color:var(--muted)}
+  .card ul{margin:.4rem 0 0;padding-left:1.15rem;font-size:.9rem;color:var(--ink)}
+  .card li{margin-bottom:.35rem}
+  .card .cta-row{margin-top:auto;padding-top:1rem}
+  .card.soon{border-style:dashed;opacity:.85}
+  .badge{
+    display:inline-block;font-family:"SF Mono",Menlo,Consolas,monospace;
+    font-size:.66rem;letter-spacing:.12em;text-transform:uppercase;
+    background:rgba(18,87,196,.12);
+    color:var(--accent);border-radius:99px;padding:.2rem .7rem;width:fit-content;
+  }
+
+  /* ---- Steps ---- */
+  .steps{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:1.1rem}
+  .step{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:1.5rem 1.5rem 1.3rem}
+  .step .n{
+    width:2rem;height:2rem;border-radius:50%;background:var(--accent);color:#fff;
+    display:flex;align-items:center;justify-content:center;font-weight:700;font-size:.95rem;
+    margin-bottom:.8rem;
+  }
+  .step h3{margin:0 0 .35rem;font-size:1.02rem}
+  .step p{margin:0;font-size:.9rem;color:var(--muted)}
+
+  /* ---- Pricing ---- */
+  .pgroup{margin-bottom:2.4rem}
+  .pgroup .ptitle{
+    display:flex;align-items:baseline;gap:.7rem;flex-wrap:wrap;margin-bottom:1.1rem;
+  }
+  .pgroup .ptitle h3{margin:0;font-size:1.12rem}
+  .pgroup .ptitle span{font-size:.85rem;color:var(--muted)}
+  .prices{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:1.1rem}
+  .price{
+    background:var(--card);border:1px solid var(--line);border-radius:16px;
+    padding:1.6rem 1.5rem 1.4rem;display:flex;flex-direction:column;gap:.35rem;
+  }
+  .price.star{border:2px solid var(--accent);position:relative}
+  .price .tag{
+    position:absolute;top:-0.72rem;left:1.2rem;background:var(--accent);color:#fff;
+    font-size:.68rem;letter-spacing:.1em;text-transform:uppercase;
+    padding:.14rem .65rem;border-radius:99px;font-weight:600;
+  }
+  .price h4{margin:0;font-size:1rem;font-weight:600}
+  .price .amt{
+    font-family:"SF Mono",Menlo,Consolas,monospace;font-size:1.45rem;font-weight:600;
+    color:var(--ink);font-variant-numeric:tabular-nums;margin:.25rem 0 0;
+  }
+  .price .amt small{font-size:.72rem;color:var(--muted);font-weight:400}
+  .price .per{font-size:.8rem;color:var(--muted)}
+  .price .cta-row{margin-top:auto;padding-top:1rem}
+
+  /* ---- Contact ---- */
+  .contact{
+    background:linear-gradient(135deg,var(--hero1),var(--hero2));
+    color:#fff;border-radius:18px;padding:2.6rem 2.4rem;margin-top:3.4rem;
+    display:flex;align-items:center;gap:2rem;flex-wrap:wrap;
+  }
+  .contact h2{color:#fff;margin-bottom:.4rem}
+  .contact p{color:rgba(255,255,255,.8);margin:0;max-width:48ch;font-size:.95rem}
+  .contact .cbox{margin-left:auto;display:flex;flex-direction:column;gap:.7rem;align-items:flex-start}
+  .contact .mail{
+    font-family:"SF Mono",Menlo,Consolas,monospace;font-size:.9rem;color:#cfe4fa;word-break:break-all;
+  }
+
+  footer{
+    margin-top:3rem;padding:2rem 0 2.6rem;border-top:1px solid var(--line);
+    color:var(--muted);font-size:.82rem;
+  }
+  footer .frow{display:flex;gap:1.5rem;flex-wrap:wrap;align-items:center}
+  footer .fbrand{display:flex;align-items:center;gap:.45rem;font-family:Futura,"Century Gothic",sans-serif;font-weight:700;color:var(--ink);letter-spacing:.05em}
+  footer p.legal{margin:.9rem 0 0;max-width:75ch}
+</style>
+</head>
+<body>
+
+<div class="wrap">
+
+  <!-- ============ NAV ============ -->
+  <nav>
+    <span class="brand">
+      <svg viewBox="0 0 64 64" width="30" height="30" aria-hidden="true">
+        <g stroke="#2e7ad6" fill="none" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M32 32 L32 20 L26 14"/><path d="M32 32 L44 32 L50 26"/><path d="M32 32 L32 44 L38 50"/><path d="M32 32 L20 32 L14 38"/>
+        </g>
+        <g fill="#2e7ad6"><circle cx="26" cy="14" r="3.2"/><circle cx="50" cy="26" r="3.2"/><circle cx="38" cy="50" r="3.2"/><circle cx="14" cy="38" r="3.2"/></g>
+        <circle cx="32" cy="32" r="4.6" fill="#1257c4"/>
+      </svg>
+      <span class="bname">R-AI</span>
+    </span>
+    <a class="link" href="#servicios">Servicios</a>
+    <a class="link" href="#como">Cómo funciona</a>
+    <a class="link" href="#precios">Precios</a>
+    <a class="btn" href="#contacto">Solicitar acceso</a>
+  </nav>
+
+  <!-- ============ HERO ============ -->
+  <header class="hero">
+    <svg class="deco" viewBox="0 0 64 64" width="360" height="360" aria-hidden="true">
+      <defs>
+        <filter id="hglow" x="-40%" y="-40%" width="180%" height="180%"><feGaussianBlur stdDeviation="1.4"/></filter>
+        <g id="hnet">
+          <g stroke="#7dbcff" fill="none" stroke-width="1.1" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M32 32 L32 20 L26 14 L26 8"/>
+            <path d="M32 32 L38 26 L38 16"/>
+            <path d="M32 32 L44 32 L50 26"/>
+            <path d="M32 32 L40 40 L48 40"/>
+            <path d="M32 32 L32 44 L38 50"/>
+            <path d="M32 32 L26 38 L26 48"/>
+            <path d="M32 32 L20 32 L14 38"/>
+            <path d="M32 32 L24 24 L16 24"/>
+            <path d="M46 10 L46 18 L40 24" opacity="0.7"/>
+            <path d="M10 14 L18 14 L22 18" opacity="0.7"/>
+            <path d="M54 48 L48 48 L44 44" opacity="0.7"/>
+            <path d="M12 52 L18 52 L22 48" opacity="0.7"/>
+            <path d="M20 6 L20 12 L24 16" opacity="0.55"/>
+            <path d="M58 36 L52 36 L48 40" opacity="0.55"/>
+            <path d="M6 44 L12 44 L16 40" opacity="0.55"/>
+            <path d="M44 58 L44 52 L40 48" opacity="0.55"/>
+          </g>
+          <g fill="none" stroke="#7dbcff" stroke-width="1.1">
+            <circle cx="26" cy="8" r="2.2"/><circle cx="48" cy="40" r="2.2"/><circle cx="26" cy="48" r="2.2"/><circle cx="16" cy="24" r="2.2"/>
+          </g>
+          <g fill="#7dbcff">
+            <circle cx="38" cy="16" r="2.2" opacity="0.9"/><circle cx="50" cy="26" r="2.2" opacity="0.85"/><circle cx="38" cy="50" r="2.2" opacity="0.9"/><circle cx="14" cy="38" r="2.2" opacity="0.85"/>
+            <circle cx="46" cy="10" r="1.9" opacity="0.6"/><circle cx="10" cy="14" r="1.9" opacity="0.6"/><circle cx="54" cy="48" r="1.9" opacity="0.6"/><circle cx="12" cy="52" r="1.9" opacity="0.6"/>
+            <circle cx="40" cy="24" r="1.1" opacity="0.7"/><circle cx="22" cy="18" r="1.1" opacity="0.7"/><circle cx="44" cy="44" r="1.1" opacity="0.7"/><circle cx="22" cy="48" r="1.1" opacity="0.7"/>
+            <circle cx="20" cy="6" r="1.8" opacity="0.55"/><circle cx="58" cy="36" r="1.8" opacity="0.55"/><circle cx="6" cy="44" r="1.8" opacity="0.55"/><circle cx="44" cy="58" r="1.8" opacity="0.55"/>
+          </g>
+          <circle cx="32" cy="32" r="5.4" fill="none" stroke="#e8f4ff" stroke-width="1" opacity="0.85"/>
+          <circle cx="32" cy="32" r="3" fill="#e8f4ff"/>
+        </g>
+      </defs>
+      <use href="#hnet" filter="url(#hglow)" opacity="0.9"/>
+      <use href="#hnet"/>
+    </svg>
+    <svg class="deco2" viewBox="0 0 64 64" width="240" height="240" aria-hidden="true"><use href="#hnet"/></svg>
+
+    <div class="hero-inner">
+      <p class="eyebrow">Regulatory Affairs Intelligence — Colombia</p>
+      <h1>La información regulatoria del INVIMA, convertida en ventaja con <em>inteligencia artificial</em></h1>
+      <p class="sub">Inteligencia regulatoria y acceso a mercados en una sola plataforma: conoce el comportamiento y las tendencias de la autoridad sanitaria, anticipa requerimientos, detecta oportunidades frente a la competencia y monitorea los tiempos que impactan tus proyectos.</p>
+      <div class="ctas">
+        <a class="btn onhero solid" href="#servicios">Ver servicios</a>
+        <a class="btn onhero" href="#contacto">Solicitar acceso</a>
+      </div>
+    </div>
+  </header>
+
+  <!-- ============ SERVICIOS ============ -->
+  <section id="servicios">
+    <p class="s-eyebrow">Servicios</p>
+    <h2>Herramientas que te apoyan con un solo objetivo: que no se te escape nada</h2>
+    <p class="s-sub">Cada herramienta funciona por separado — usa solo la que tu equipo necesita, o combínalas. La plataforma sigue creciendo.</p>
+
+    <div class="cards">
+      <div class="card">
+        <span class="icon">
+          <svg viewBox="0 0 40 40" width="34" height="34" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <rect x="6" y="4" width="28" height="32" rx="3"/>
+            <path d="M12 27 L17 20 L21 23 L28 13"/>
+            <path d="M24 13 L28 13 L28 17"/>
+          </svg>
+        </span>
+        <h3>Analista con IA · Actas SEMPB</h3>
+        <p>Analiza al instante la posición de la Sala Especializada de Medicamentos y Productos Biológicos del INVIMA. No es un buscador: es un analista que estudia miles de decisiones y te entrega conclusiones.</p>
+        <ul>
+          <li>Identifica patrones, tendencias y la posición histórica de la Sala sobre cualquier tema</li>
+          <li>Responde preguntas abiertas: <em>"¿qué opina la Sala Especializada sobre el uso de X molécula en cáncer de pulmón de célula pequeña?"</em></li>
+          <li>Conceptos, motivos de rechazo y antecedentes de cada decisión, desde 2017 y siempre al día</li>
+          <li>Acceso web seguro, en lenguaje natural, sin entrenamiento previo</li>
+        </ul>
+        <div class="cta-row"><a class="btn ghost" href="#precios">Ver planes</a></div>
+      </div>
+
+      <div class="card">
+        <span class="icon">
+          <svg viewBox="0 0 40 40" width="34" height="34" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+            <circle cx="10" cy="32" r="3" fill="currentColor" stroke="none"/>
+            <path d="M10 22 A 10 10 0 0 1 20 32"/>
+            <path d="M10 14 A 18 18 0 0 1 28 32"/>
+            <path d="M10 6 A 26 26 0 0 1 36 32" opacity="0.5"/>
+          </svg>
+        </span>
+        <h3>Monitor Decreto de Transparencia</h3>
+        <p>Con un solo clic, conoce los sometimientos recibidos por el INVIMA en todas las categorías disponibles. Eliges el rango de fechas y recibes el reporte completo de lo sometido en ese periodo.</p>
+        <ul>
+          <li>¿La competencia sometió una nueva molécula? Míralo en segundos</li>
+          <li>Todas las categorías: medicamentos, biológicos y más</li>
+          <li>Reporte descargable en Excel, listo para compartir</li>
+          <li>Pagas solo por el rango de fechas que consultas</li>
+        </ul>
+        <div class="cta-row" style="display:flex;gap:.6rem;flex-wrap:wrap">
+          <a class="btn" href="https://monitor-rai-cutcvh5zmvuddmzbp5nkfc.streamlit.app/" target="_blank" rel="noopener">Abrir el Monitor</a>
+          <a class="btn ghost" href="#precios">Ver planes</a>
+        </div>
+      </div>
+
+      <div class="card soon">
+        <span class="badge">Próximamente</span>
+        <h3>Nuevos módulos</h3>
+        <p>La plataforma crece: normatividad, requisitos, publicidad, alertas por correo y más herramientas de inteligencia regulatoria en desarrollo.</p>
+        <div class="cta-row"><a class="btn ghost" href="#contacto">Cuéntanos qué necesitas</a></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ CÓMO FUNCIONA ============ -->
+  <section id="como">
+    <p class="s-eyebrow">Cómo funciona</p>
+    <h2>Acceso en tres pasos</h2>
+    <p class="s-sub">Sin instalaciones ni configuración: todo funciona desde el navegador, en computador o celular.</p>
+
+    <div class="steps">
+      <div class="step">
+        <div class="n">1</div>
+        <h3>Elige tu herramienta y tu plan</h3>
+        <p>Paquete de consultas para el Analista de Actas, o rango de fechas para el Monitor. Sin permanencias ni suscripciones forzosas.</p>
+      </div>
+      <div class="step">
+        <div class="n">2</div>
+        <h3>Solicita acceso y paga</h3>
+        <p>Te enviamos el link de pago (tarjeta, PSE o transferencia).</p>
+      </div>
+      <div class="step">
+        <div class="n">3</div>
+        <h3>Recibe tus credenciales</h3>
+        <p>En menos de un día hábil tienes usuario y contraseña. Entras desde cualquier navegador y listo.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ PRECIOS ============ -->
+  <section id="precios">
+    <p class="s-eyebrow">Precios</p>
+    <h2>Pagas por lo que usas</h2>
+    <p class="s-sub">Sin mensualidades obligatorias: el Analista se compra por paquetes de consultas y el Monitor por el rango de fechas de cada reporte.</p>
+
+    <div class="pgroup">
+      <div class="ptitle">
+        <h3>Analista con IA · Actas SEMPB</h3>
+        <span>paquetes de consultas — cada pregunta al analista descuenta una</span>
+      </div>
+      <div class="prices">
+        <div class="price">
+          <h4>Paquete 20</h4>
+          <p class="amt">$50.000 <small>COP</small></p>
+          <p class="per">20 consultas · $2.500 por consulta</p>
+          <div class="cta-row"><a class="btn ghost" href="#contacto">Solicitar</a></div>
+        </div>
+        <div class="price star">
+          <span class="tag">Mejor precio por consulta</span>
+          <h4>Paquete 100</h4>
+          <p class="amt">$200.000 <small>COP</small></p>
+          <p class="per">100 consultas · $2.000 por consulta</p>
+          <div class="cta-row"><a class="btn" href="#contacto">Solicitar</a></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="pgroup">
+      <div class="ptitle">
+        <h3>Monitor Decreto de Transparencia</h3>
+        <span>eliges el rango de fechas y pagas según su extensión</span>
+      </div>
+      <div class="prices">
+        <div class="price">
+          <h4>1 día</h4>
+          <p class="amt">$3.000 <small>COP</small></p>
+          <p class="per">Reporte de un día puntual</p>
+          <div class="cta-row"><a class="btn ghost" href="https://monitor-rai-cutcvh5zmvuddmzbp5nkfc.streamlit.app/" target="_blank" rel="noopener">Solicitar</a></div>
+        </div>
+        <div class="price">
+          <h4>Hasta 30 días</h4>
+          <p class="amt">$80.000 <small>COP</small></p>
+          <p class="per">Rangos de hasta un mes</p>
+          <div class="cta-row"><a class="btn ghost" href="https://monitor-rai-cutcvh5zmvuddmzbp5nkfc.streamlit.app/" target="_blank" rel="noopener">Solicitar</a></div>
+        </div>
+        <div class="price">
+          <h4>Hasta 90 días</h4>
+          <p class="amt">$200.000 <small>COP</small></p>
+          <p class="per">Rangos de hasta un trimestre</p>
+          <div class="cta-row"><a class="btn ghost" href="https://monitor-rai-cutcvh5zmvuddmzbp5nkfc.streamlit.app/" target="_blank" rel="noopener">Solicitar</a></div>
+        </div>
+        <div class="price star">
+          <span class="tag">Máximo ahorro</span>
+          <h4>Hasta 1 año</h4>
+          <p class="amt">$800.000 <small>COP</small></p>
+          <p class="per">Hasta 12 meses de histórico completo</p>
+          <div class="cta-row"><a class="btn" href="https://monitor-rai-cutcvh5zmvuddmzbp5nkfc.streamlit.app/" target="_blank" rel="noopener">Solicitar</a></div>
+        </div>
+      </div>
+    </div>
+
+    <p class="s-sub" style="margin-top:.2rem;font-size:.85rem">Los precios incluyen IVA e impuestos. ¿Necesitas un plan empresarial o para tu equipo? Lo armamos a tu medida.</p>
+  </section>
+
+  <!-- ============ CONTACTO ============ -->
+  <section id="contacto" style="padding-top:0">
+    <div class="contact">
+      <div>
+        <h2>Hablemos</h2>
+        <p>Cuéntanos qué necesita tu equipo y lo revisamos.</p>
+      </div>
+      <div class="cbox">
+        <a class="btn onhero solid" href="mailto:Regulatorios.AI.Colombia@gmail.com">Escribir a R-AI</a>
+        <span class="mail">Regulatorios.AI.Colombia@gmail.com</span>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ FOOTER ============ -->
+  <footer>
+    <div class="frow">
+      <span class="fbrand">
+        <svg viewBox="0 0 64 64" width="20" height="20" aria-hidden="true">
+          <g stroke="#2e7ad6" fill="none" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M32 32 L32 20 L26 14"/><path d="M32 32 L44 32 L50 26"/><path d="M32 32 L32 44 L38 50"/><path d="M32 32 L20 32 L14 38"/>
+          </g>
+          <g fill="#2e7ad6"><circle cx="26" cy="14" r="3.2"/><circle cx="50" cy="26" r="3.2"/><circle cx="38" cy="50" r="3.2"/><circle cx="14" cy="38" r="3.2"/></g>
+          <circle cx="32" cy="32" r="4.6" fill="#1257c4"/>
+        </svg>
+        R-AI
+      </span>
+      <span>Regulatory Affairs Intelligence · Bogotá, Colombia</span>
+      <span style="margin-left:auto">© 2026 R-AI</span>
+    </div>
+    <p class="legal">La información presentada por las herramientas de R-AI proviene de fuentes públicas del INVIMA y se ofrece como apoyo a la vigilancia regulatoria. R-AI no representa al INVIMA ni a ninguna autoridad sanitaria, y sus reportes no sustituyen la asesoría regulatoria o legal profesional ni los documentos oficiales (actas y resoluciones), que prevalecen en todos los casos.</p>
+  </footer>
+
+</div>
+</body>
+</html>
