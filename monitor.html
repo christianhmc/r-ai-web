@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Monitor Decreto de Transparencia — R-AI</title>
+<meta name="description" content="Monitor del Decreto de Transparencia del INVIMA: genere su reporte de sometimientos por rango de fechas.">
+<link rel="icon" type="image/svg+xml" href="favicon.svg">
+<style>
+  :root{
+    --paper:#f5f7fa;
+    --card:#ffffff;
+    --ink:#1c2b40;
+    --muted:#5a6b80;
+    --line:#dfe5ec;
+    --accent:#1257c4;
+    --accent2:#2e7ad6;
+  }
+  @media (prefers-color-scheme: dark){
+    :root{
+      --paper:#10151d;
+      --card:#182028;
+      --ink:#e7edf4;
+      --muted:#93a3b6;
+      --line:#273140;
+      --accent:#5da2f0;
+      --accent2:#7dbcff;
+    }
+  }
+
+  *{box-sizing:border-box}
+  html,body{height:100%}
+  body{
+    background:var(--paper);
+    color:var(--ink);
+    font-family:"Avenir Next","Helvetica Neue","Segoe UI",sans-serif;
+    margin:0;
+    display:flex;
+    flex-direction:column;
+    -webkit-font-smoothing:antialiased;
+  }
+
+  nav{
+    display:flex;align-items:center;gap:1rem;flex-wrap:wrap;
+    padding:.7rem 1.4rem;
+    border-bottom:1px solid var(--line);
+    background:var(--card);
+  }
+  .brand{display:flex;align-items:center;gap:.55rem;margin-right:auto;text-decoration:none}
+  .brand .bname{
+    font-family:Futura,"Century Gothic","Avenir Next",sans-serif;
+    font-weight:700;font-size:1.2rem;letter-spacing:.06em;color:var(--ink);
+  }
+  .btitle{color:var(--muted);font-size:.92rem}
+  nav a.link{color:var(--muted);text-decoration:none;font-size:.9rem}
+  nav a.link:hover{color:var(--accent)}
+
+  .frame-holder{flex:1;display:flex;min-height:0}
+  iframe{
+    flex:1;width:100%;border:0;
+    background:var(--paper);
+  }
+
+  @media (max-width:640px){
+    .btitle{display:none}
+  }
+</style>
+</head>
+<body>
+
+  <nav>
+    <a class="brand" href="index.html">
+      <svg viewBox="0 0 64 64" width="26" height="26" aria-hidden="true">
+        <g stroke="#2e7ad6" fill="none" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M32 32 L32 20 L26 14"/><path d="M32 32 L44 32 L50 26"/><path d="M32 32 L32 44 L38 50"/><path d="M32 32 L20 32 L14 38"/>
+        </g>
+        <g fill="#2e7ad6"><circle cx="26" cy="14" r="3.2"/><circle cx="50" cy="26" r="3.2"/><circle cx="38" cy="50" r="3.2"/><circle cx="14" cy="38" r="3.2"/></g>
+        <circle cx="32" cy="32" r="4.6" fill="#1257c4"/>
+      </svg>
+      <span class="bname">R-AI</span>
+    </a>
+    <span class="btitle">Monitor Decreto de Transparencia</span>
+    <a class="link" href="index.html">← Volver al inicio</a>
+    <a class="link" href="https://monitor-rai-cutcvh5zmvuddmzbp5nkfc.streamlit.app/" target="_blank" rel="noopener">Pantalla completa ↗</a>
+  </nav>
+
+  <div class="frame-holder">
+    <iframe
+      src="https://monitor-rai-cutcvh5zmvuddmzbp5nkfc.streamlit.app/?embed=true"
+      title="Monitor Decreto de Transparencia — R-AI"
+      allow="clipboard-write"
+      loading="eager"></iframe>
+  </div>
+
+</body>
+</html>
