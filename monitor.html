@@ -85,12 +85,25 @@
   </nav>
 
   <div class="frame-holder">
-    <iframe
+    <iframe id="appframe"
       src="https://monitor-rai-cutcvh5zmvuddmzbp5nkfc.streamlit.app/?embed=true"
       title="Monitor Decreto de Transparencia — R-AI"
       allow="clipboard-write"
       loading="eager"></iframe>
   </div>
+
+  <script>
+    // Si Wompi devolvió al cliente con su número de transacción (?id=...),
+    // pasarlo al Monitor embebido para que valide el pago automáticamente.
+    (function () {
+      var id = new URLSearchParams(location.search).get("id");
+      if (id) {
+        var f = document.getElementById("appframe");
+        f.src = "https://monitor-rai-cutcvh5zmvuddmzbp5nkfc.streamlit.app/?embed=true&id="
+                + encodeURIComponent(id);
+      }
+    })();
+  </script>
 
 </body>
 </html>
