@@ -45,7 +45,11 @@
 
   /* ---- Nav ---- */
   nav{display:flex;align-items:center;gap:1.6rem;padding:1rem 0;flex-wrap:wrap}
-  .brand{display:flex;align-items:center;gap:.55rem;margin-right:auto}
+  .brand{
+    display:flex;align-items:center;gap:.55rem;margin-right:auto;
+    text-decoration:none;transition:opacity .18s ease;
+  }
+  .brand:hover{opacity:.72}
   .brand .bname{
     font-family:Futura,"Century Gothic","Avenir Next",sans-serif;
     font-weight:700;font-size:1.35rem;letter-spacing:.06em;color:var(--ink);
@@ -182,7 +186,7 @@
 
   <!-- ============ NAV ============ -->
   <nav>
-    <span class="brand">
+    <a class="brand" href="index.html" aria-label="R-AI — Inicio">
       <svg viewBox="0 0 64 64" width="30" height="30" aria-hidden="true">
         <g stroke="#2e7ad6" fill="none" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round">
           <path d="M32 32 L32 20 L26 14"/><path d="M32 32 L44 32 L50 26"/><path d="M32 32 L32 44 L38 50"/><path d="M32 32 L20 32 L14 38"/>
@@ -191,7 +195,7 @@
         <circle cx="32" cy="32" r="4.6" fill="#1257c4"/>
       </svg>
       <span class="bname">R-AI</span>
-    </span>
+    </a>
     <a class="link" href="#servicios">Servicios</a>
     <a class="link" href="#como">Cómo funciona</a>
     <a class="link" href="#precios">Precios</a>
@@ -243,7 +247,7 @@
     <div class="hero-inner">
       <p class="eyebrow">Regulatory Affairs Intelligence — Colombia</p>
       <h1>La información regulatoria del INVIMA, convertida en ventaja con <em>inteligencia artificial</em></h1>
-      <p class="sub">Inteligencia regulatoria y acceso a mercados en una sola plataforma: conoce el comportamiento y las tendencias de la autoridad sanitaria, anticipa requerimientos, detecta oportunidades frente a la competencia y monitorea los tiempos que impactan tus proyectos.</p>
+      <p class="sub">Inteligencia y servicios regulatorios en una sola plataforma: conoce el comportamiento y las tendencias de la autoridad sanitaria, anticipa requerimientos, detecta oportunidades frente a la competencia y monitorea los tiempos que impactan tus proyectos, con acompañamiento experto cuando lo necesites.</p>
       <div class="ctas">
         <a class="btn onhero solid" href="#servicios">Ver servicios</a>
         <a class="btn onhero" href="#contacto">Solicitar acceso</a>
