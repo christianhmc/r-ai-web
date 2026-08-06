@@ -61,6 +61,32 @@
     background:var(--paper);
   }
 
+  /* Franja del comprobante: aparece solo cuando hay una compra en curso */
+  #comprobante{
+    display:flex;align-items:center;gap:.6rem;flex-wrap:wrap;
+    padding:.6rem 1.4rem;
+    background:#eaf1fa;border-bottom:1px solid #cfdff2;
+    color:#3c4c60;font-size:.86rem;line-height:1.5;
+  }
+  #comprobante[hidden]{display:none}
+  @media (prefers-color-scheme: dark){
+    #comprobante{background:#152a44;border-bottom-color:#24405f;color:#9aabbf}
+  }
+  #comprobante .etq{font-weight:600;color:var(--ink)}
+  #comprobante code{
+    font-family:ui-monospace,SFMono-Regular,Menlo,monospace;
+    background:var(--card);border:1px solid var(--line);border-radius:6px;
+    padding:.15rem .45rem;font-size:.85rem;color:var(--ink);
+  }
+  #comprobante .pista{color:var(--muted)}
+  #copiar{
+    font:inherit;font-size:.8rem;font-weight:600;
+    background:var(--accent);color:#fff;border:0;border-radius:6px;
+    padding:.28rem .7rem;cursor:pointer;
+  }
+  #copiar:hover{background:var(--accent2)}
+  #copiar:focus-visible{outline:2px solid var(--accent2);outline-offset:2px}
+
   @media (max-width:640px){
     .btitle{display:none}
   }
@@ -84,6 +110,13 @@
     <a class="link" href="https://monitor-rai-cutcvh5zmvuddmzbp5nkfc.streamlit.app/" target="_blank" rel="noopener">Pantalla completa ↗</a>
   </nav>
 
+  <div id="comprobante" hidden>
+    <span class="etq">🧾 Tu comprobante de pago:</span>
+    <code id="num-comprobante"></code>
+    <button id="copiar" type="button">Copiar</button>
+    <span class="pista">Guárdalo: con él puedes volver a descargar tu reporte durante 24 horas.</span>
+  </div>
+
   <div class="frame-holder">
     <iframe id="appframe"
       src="https://monitor-rai-cutcvh5zmvuddmzbp5nkfc.streamlit.app/?embed=true"
@@ -93,15 +126,67 @@
   </div>
 
   <script>
-    // Si Wompi devolvió al cliente con su número de transacción (?id=...),
-    // pasarlo al Monitor embebido para que valide el pago automáticamente.
+    // El número de transacción de Wompi es la llave del reporte que el cliente
+    // acaba de pagar, y hasta ahora vivía SOLO en la barra de direcciones: si
+    // recargaba, cerraba la pestaña, o la app tardaba en despertar y él insistía,
+    // lo perdía junto con su compra. Ahora se guarda en su propio navegador
+    // durante 24 h — la misma ventana de re-descarga que aplica la app— y se
+    // muestra en pantalla para que pueda anotarlo.
     (function () {
+      var CLAVE = "rai_monitor_comprobante";
+      var VENTANA_MS = 24 * 60 * 60 * 1000;
+      var APP = "https://monitor-rai-cutcvh5zmvuddmzbp5nkfc.streamlit.app/?embed=true";
+
+      // localStorage lanza excepción en navegación privada de algunos
+      // navegadores. Si falla, la página sigue funcionando igual que antes:
+      // se pierde el respaldo, no el flujo.
+      function guardar(id) {
+        try {
+          localStorage.setItem(CLAVE, JSON.stringify({ id: id, t: Date.now() }));
+        } catch (e) {}
+      }
+      function recuperar() {
+        try {
+          var crudo = localStorage.getItem(CLAVE);
+          if (!crudo) return null;
+          var g = JSON.parse(crudo);
+          if (!g || !g.id || !g.t) return null;
+          if (Date.now() - g.t > VENTANA_MS) {   // venció: se limpia solo, así
+            localStorage.removeItem(CLAVE);      // no se intenta entrar con un
+            return null;                         // comprobante ya expirado
+          }
+          return g.id;
+        } catch (e) { return null; }
+      }
+
       var id = new URLSearchParams(location.search).get("id");
       if (id) {
-        var f = document.getElementById("appframe");
-        f.src = "https://monitor-rai-cutcvh5zmvuddmzbp5nkfc.streamlit.app/?embed=true&id="
-                + encodeURIComponent(id);
+        guardar(id);          // el de la URL siempre manda: si el mismo equipo
+      } else {                // hace una compra nueva, reemplaza a la anterior
+        id = recuperar();
       }
+      if (!id) return;
+
+      document.getElementById("appframe").src = APP + "&id=" + encodeURIComponent(id);
+
+      var barra = document.getElementById("comprobante");
+      document.getElementById("num-comprobante").textContent = id;
+      barra.hidden = false;
+
+      var boton = document.getElementById("copiar");
+      boton.addEventListener("click", function () {
+        var listo = function () {
+          boton.textContent = "Copiado";
+          setTimeout(function () { boton.textContent = "Copiar"; }, 2000);
+        };
+        if (navigator.clipboard && navigator.clipboard.writeText) {
+          navigator.clipboard.writeText(id).then(listo, function () {});
+        } else {
+          var s = window.getSelection(), r = document.createRange();
+          r.selectNodeContents(document.getElementById("num-comprobante"));
+          s.removeAllRanges(); s.addRange(r);
+        }
+      });
     })();
   </script>
 
