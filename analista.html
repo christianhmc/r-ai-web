@@ -1,0 +1,211 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Analista con IA · Actas SEMPB — R-AI</title>
+<meta name="description" content="Analista con IA de las actas de la SEMPB del INVIMA: haz una pregunta y recibe un análisis completo de las decisiones de la Sala.">
+<link rel="icon" type="image/svg+xml" href="favicon.svg">
+<style>
+  :root{
+    --paper:#f5f7fa;
+    --card:#ffffff;
+    --ink:#1c2b40;
+    --muted:#5a6b80;
+    --line:#dfe5ec;
+    --accent:#1257c4;
+    --accent2:#2e7ad6;
+  }
+  @media (prefers-color-scheme: dark){
+    :root{
+      --paper:#10151d;
+      --card:#182028;
+      --ink:#e7edf4;
+      --muted:#93a3b6;
+      --line:#273140;
+      --accent:#5da2f0;
+      --accent2:#7dbcff;
+    }
+  }
+
+  *{box-sizing:border-box}
+  html,body{height:100%}
+  body{
+    background:var(--paper);
+    color:var(--ink);
+    font-family:"Avenir Next","Helvetica Neue","Segoe UI",sans-serif;
+    margin:0;
+    display:flex;
+    flex-direction:column;
+    -webkit-font-smoothing:antialiased;
+  }
+
+  nav{
+    display:flex;align-items:center;gap:1rem;flex-wrap:wrap;
+    padding:.7rem 1.4rem;
+    border-bottom:1px solid var(--line);
+    background:var(--card);
+  }
+  .brand{display:flex;align-items:center;gap:.55rem;margin-right:auto;text-decoration:none}
+  .brand .bname{
+    font-family:Futura,"Century Gothic","Avenir Next",sans-serif;
+    font-weight:700;font-size:1.2rem;letter-spacing:.06em;color:var(--ink);
+  }
+  .btitle{color:var(--muted);font-size:.92rem}
+  nav a.link{color:var(--muted);text-decoration:none;font-size:.9rem}
+  nav a.link:hover{color:var(--accent)}
+
+  .frame-holder{flex:1;display:flex;min-height:0}
+  iframe{
+    flex:1;width:100%;border:0;
+    background:var(--paper);
+  }
+
+  /* Franja de la clave de acceso: aparece cuando hay una compra registrada */
+  #clave-barra{
+    display:flex;align-items:center;gap:.6rem;flex-wrap:wrap;
+    padding:.6rem 1.4rem;
+    background:#eaf1fa;border-bottom:1px solid #cfdff2;
+    color:#3c4c60;font-size:.86rem;line-height:1.5;
+  }
+  #clave-barra[hidden]{display:none}
+  @media (prefers-color-scheme: dark){
+    #clave-barra{background:#152a44;border-bottom-color:#24405f;color:#9aabbf}
+  }
+  #clave-barra .etq{font-weight:600;color:var(--ink)}
+  #clave-barra code{
+    font-family:ui-monospace,SFMono-Regular,Menlo,monospace;
+    background:var(--card);border:1px solid var(--line);border-radius:6px;
+    padding:.15rem .45rem;font-size:.85rem;color:var(--ink);
+  }
+  #clave-barra .pista{color:var(--muted)}
+  #copiar{
+    font:inherit;font-size:.8rem;font-weight:600;
+    background:var(--accent);color:#fff;border:0;border-radius:6px;
+    padding:.28rem .7rem;cursor:pointer;
+  }
+  #copiar:hover{background:var(--accent2)}
+  #copiar:focus-visible{outline:2px solid var(--accent2);outline-offset:2px}
+
+  @media (max-width:640px){
+    .btitle{display:none}
+  }
+</style>
+</head>
+<body>
+
+  <nav>
+    <a class="brand" href="index.html">
+      <svg viewBox="0 0 64 64" width="30" height="30" aria-hidden="true">
+        <g stroke="#2e7ad6" fill="none" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M32 32 L32 20 L26 14 L26 8"/>
+          <path d="M32 32 L38 26 L38 16"/>
+          <path d="M32 32 L44 32 L50 26"/>
+          <path d="M32 32 L40 40 L48 40"/>
+          <path d="M32 32 L32 44 L38 50"/>
+          <path d="M32 32 L26 38 L26 48"/>
+          <path d="M32 32 L20 32 L14 38"/>
+          <path d="M32 32 L24 24 L16 24"/>
+          <path d="M46 10 L46 18 L40 24" opacity="0.7"/>
+          <path d="M10 14 L18 14 L22 18" opacity="0.7"/>
+          <path d="M54 48 L48 48 L44 44" opacity="0.7"/>
+          <path d="M12 52 L18 52 L22 48" opacity="0.7"/>
+        </g>
+        <g fill="none" stroke="#2e7ad6" stroke-width="1.9">
+          <circle cx="26" cy="8" r="2.4"/><circle cx="48" cy="40" r="2.4"/><circle cx="26" cy="48" r="2.4"/><circle cx="16" cy="24" r="2.4"/>
+        </g>
+        <g fill="#2e7ad6">
+          <circle cx="38" cy="16" r="2.4"/><circle cx="50" cy="26" r="2.4"/><circle cx="38" cy="50" r="2.4"/><circle cx="14" cy="38" r="2.4"/>
+          <circle cx="46" cy="10" r="2" opacity="0.65"/><circle cx="10" cy="14" r="2" opacity="0.65"/><circle cx="54" cy="48" r="2" opacity="0.65"/><circle cx="12" cy="52" r="2" opacity="0.65"/>
+        </g>
+        <circle cx="32" cy="32" r="5.2" fill="none" stroke="#1257c4" stroke-width="1.6" opacity="0.85"/>
+        <circle cx="32" cy="32" r="3.1" fill="#1257c4"/>
+      </svg>
+      <span class="bname">R-AI</span>
+    </a>
+    <span class="btitle">Analista con IA · Actas SEMPB</span>
+    <a class="link" href="index.html">← Volver al inicio</a>
+    <a class="link" href="https://chatbot---actas-sempb-invima-oj48ju5zqoxzy7dfdvntuc.streamlit.app/" target="_blank" rel="noopener">Pantalla completa ↗</a>
+  </nav>
+
+  <div id="clave-barra" hidden>
+    <span class="etq">Tu clave de acceso:</span>
+    <code id="num-clave"></code>
+    <button id="copiar" type="button">Copiar</button>
+    <span class="pista">Guárdala: con ella entras al Analista desde cualquier equipo. Tu paquete vale 12 meses desde la compra.</span>
+  </div>
+
+  <div class="frame-holder">
+    <iframe id="appframe"
+      src="https://chatbot---actas-sempb-invima-oj48ju5zqoxzy7dfdvntuc.streamlit.app/?embed=true"
+      title="Analista con IA · Actas SEMPB — R-AI"
+      allow="clipboard-write"
+      loading="eager"></iframe>
+  </div>
+
+  <script>
+    // La clave de acceso del Analista es el número de transacción de Wompi.
+    // Al volver del pago llega como ?id= en la URL; se guarda en el navegador
+    // del cliente por 12 MESES (la vigencia real del paquete, a diferencia del
+    // Monitor cuyo comprobante vale 24 h) y se le pasa al iframe para que la
+    // app lo deje entrar sin escribir nada. Mismo patrón de monitor.html.
+    (function () {
+      var CLAVE = "rai_analista_clave";
+      var VENTANA_MS = 365 * 24 * 60 * 60 * 1000;
+      var APP = "https://chatbot---actas-sempb-invima-oj48ju5zqoxzy7dfdvntuc.streamlit.app/?embed=true";
+
+      // localStorage lanza excepción en navegación privada de algunos
+      // navegadores. Si falla, la página sigue funcionando igual: se pierde
+      // el recordatorio, no el acceso (el cliente teclea su clave en la app).
+      function guardar(id) {
+        try {
+          localStorage.setItem(CLAVE, JSON.stringify({ id: id, t: Date.now() }));
+        } catch (e) {}
+      }
+      function recuperar() {
+        try {
+          var crudo = localStorage.getItem(CLAVE);
+          if (!crudo) return null;
+          var g = JSON.parse(crudo);
+          if (!g || !g.id || !g.t) return null;
+          if (Date.now() - g.t > VENTANA_MS) {   // venció la vigencia del
+            localStorage.removeItem(CLAVE);      // paquete: se limpia solo
+            return null;
+          }
+          return g.id;
+        } catch (e) { return null; }
+      }
+
+      var id = new URLSearchParams(location.search).get("id");
+      if (id) {
+        guardar(id);          // la de la URL siempre manda: una compra nueva
+      } else {                // en el mismo equipo reemplaza a la anterior
+        id = recuperar();
+      }
+      if (!id) return;
+
+      document.getElementById("appframe").src = APP + "&id=" + encodeURIComponent(id);
+
+      var barra = document.getElementById("clave-barra");
+      document.getElementById("num-clave").textContent = id;
+      barra.hidden = false;
+
+      var boton = document.getElementById("copiar");
+      boton.addEventListener("click", function () {
+        var listo = function () {
+          boton.textContent = "Copiada";
+          setTimeout(function () { boton.textContent = "Copiar"; }, 2000);
+        };
+        if (navigator.clipboard && navigator.clipboard.writeText) {
+          navigator.clipboard.writeText(id).then(listo, function () {});
+        } else {
+          var s = window.getSelection(), r = document.createRange();
+          r.selectNodeContents(document.getElementById("num-clave"));
+          s.removeAllRanges(); s.addRange(r);
+        }
+      });
+    })();
+  </script>
+
+</body>
+</html>
