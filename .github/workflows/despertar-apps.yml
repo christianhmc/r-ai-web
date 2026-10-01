@@ -1,0 +1,72 @@
+# Despertar apps R-AI — visitante robot con navegador real.
+# Streamlit Community Cloud duerme las apps tras 12 h sin visitas de personas,
+# y los "pings" de UptimeRobot no cuentan (nunca abren una sesión real).
+# Este robot abre las dos apps con un navegador sin ventana cada 6 horas,
+# pulsa "Yes, get this app back up!" si las encuentra dormidas y se queda
+# unos segundos dentro. Para Streamlit es un usuario de verdad.
+#
+# Se puede correr a mano desde la pestaña Actions del repo ("Run workflow").
+# Si falla, GitHub avisa por correo al dueño del repo.
+
+name: Despertar apps R-AI
+
+on:
+  schedule:
+    - cron: "0 */6 * * *"   # cada 6 horas (hora UTC)
+  workflow_dispatch:         # botón para correrlo a mano
+
+jobs:
+  despertar:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Preparar Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Instalar navegador
+        run: |
+          pip install --quiet playwright
+          playwright install --with-deps chromium
+
+      - name: Visitar las apps
+        run: |
+          python - <<'PY'
+          import sys, time
+          from playwright.sync_api import sync_playwright
+
+          APPS = {
+              "Analista": "https://chatbot---actas-sempb-invima-oj48ju5zqoxzy7dfdvntuc.streamlit.app/",
+              "Monitor":  "https://monitor-rai-cutcvh5zmvuddmzbp5nkfc.streamlit.app/",
+          }
+          ESPERA_NORMAL = 45     # segundos dentro de la app (cuenta como visita real)
+          ESPERA_DESPERTAR = 120 # segundos extra si había que despertarla
+
+          fallos = 0
+          with sync_playwright() as p:
+              navegador = p.chromium.launch()
+              for nombre, url in APPS.items():
+                  pagina = navegador.new_page()
+                  try:
+                      pagina.goto(url, wait_until="domcontentloaded", timeout=90_000)
+                      time.sleep(10)
+                      boton = pagina.get_by_text("get this app back up", exact=False)
+                      if boton.count() > 0:
+                          print(f"{nombre}: estaba DORMIDA, pulsando el botón para despertarla")
+                          boton.first.click()
+                          time.sleep(ESPERA_DESPERTAR)
+                      time.sleep(ESPERA_NORMAL)
+                      sigue_dormida = pagina.get_by_text("gone to sleep", exact=False).count() > 0
+                      print(f"{nombre}: título='{pagina.title()}' · sigue dormida={sigue_dormida}")
+                      if sigue_dormida:
+                          fallos += 1
+                  except Exception as e:
+                      print(f"{nombre}: ERROR {e}")
+                      fallos += 1
+                  finally:
+                      pagina.close()
+              navegador.close()
+
+          sys.exit(1 if fallos else 0)
+          PY
