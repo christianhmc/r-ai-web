@@ -7,6 +7,13 @@
 #
 # Se puede correr a mano desde la pestaña Actions del repo ("Run workflow").
 # Si falla, GitHub avisa por correo al dueño del repo.
+#
+# ANTI-APAGADO (añadido 2026-11-25): GitHub desactiva las tareas programadas
+# si el repo lleva 60 días sin ningún commit (avisó por correo el 2026-11-25).
+# Para que el repo nunca esté "inactivo", el último paso guarda la semana de
+# la última visita en .github/ultima-visita.txt y la sube al repo. Solo hace
+# un commit cuando cambia la semana (~52 al año), así no llena el historial.
+# Ese commit lo firma "github-actions[bot]" y NO toca la web ni el CNAME.
 
 name: Despertar apps R-AI
 
@@ -15,11 +22,17 @@ on:
     - cron: "0 */6 * * *"   # cada 6 horas (hora UTC)
   workflow_dispatch:         # botón para correrlo a mano
 
+permissions:
+  contents: write            # necesario para que el robot pueda hacer el commit
+
 jobs:
   despertar:
     runs-on: ubuntu-latest
     timeout-minutes: 15
     steps:
+      - name: Descargar el repo
+        uses: actions/checkout@v4
+
       - name: Preparar Python
         uses: actions/setup-python@v5
         with:
@@ -70,3 +83,24 @@ jobs:
 
           sys.exit(1 if fallos else 0)
           PY
+
+      # Mantiene el repo "activo" para GitHub aunque la web no cambie.
+      # Corre siempre (if: always()), incluso si las apps fallaron, porque
+      # lo que importa aquí es que exista un commit reciente.
+      - name: Registrar la visita (evita que GitHub apague esta tarea)
+        if: always()
+        run: |
+          semana="$(date -u +%G-W%V)"
+          archivo=".github/ultima-visita.txt"
+          if [ -f "$archivo" ] && grep -q "$semana" "$archivo"; then
+            echo "Semana $semana ya registrada; sin commit."
+            exit 0
+          fi
+          printf 'Última visita del robot Despertar apps R-AI: semana %s (%s UTC)\n' \
+            "$semana" "$(date -u +%Y-%m-%d\ %H:%M)" > "$archivo"
+          git config user.name  "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add "$archivo"
+          git commit -m "Robot despertar apps: visita semana $semana"
+          git push
+          echo "Commit hecho para la semana $semana."
